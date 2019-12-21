@@ -49,7 +49,7 @@ void G_BounceMissile( gentity_t *ent, trace_t *trace ) {
 	dot = DotProduct( velocity, trace->plane.normal );
 	VectorMA( velocity, -2*dot, trace->plane.normal, ent->s.pos.trDelta );
 
-	if ( ent->s.eFlags & EF_BOUNCE_HALF ) {
+	if ( ent->s.eFlags & EF_BOUNCE ) { //ZaRR: Original EF_BOUNCE_HALF
 		VectorScale( ent->s.pos.trDelta, 0.65, ent->s.pos.trDelta );
 		// check for stop
 		if ( trace->plane.normal[2] > 0.2 && VectorLength( ent->s.pos.trDelta ) < 40 ) {
@@ -327,7 +327,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 				velocity[2] = 1;	// stepped on a grenade
 			}
 			G_Damage (other, ent, &g_entities[ent->r.ownerNum], velocity,
-				ent->s.origin, ent->damage, 
+				ent->s.origin, ent->damage,
 				0, ent->methodOfDeath);
 		}
 	}
@@ -437,7 +437,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 
 	// splash damage (doesn't apply to person directly hit)
 	if ( ent->splashDamage ) {
-		if( G_RadiusDamage( trace->endpos, ent->parent, ent->splashDamage, ent->splashRadius, 
+		if( G_RadiusDamage( trace->endpos, ent->parent, ent->splashDamage, ent->splashRadius,
 			other, ent->splashMethodOfDeath ) ) {
 			if( !hitPlayer ) {
 				g_entities[ent->r.ownerNum].player->accuracy_hits++;
@@ -564,7 +564,7 @@ gentity_t *fire_plasma (gentity_t *self, vec3_t start, vec3_t dir) {
 	}
 
 	return bolt;
-}	
+}
 
 //=============================================================================
 
@@ -581,7 +581,7 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir) {
 
 	bolt = G_Spawn();
 	bolt->classname = "grenade";
-	bolt->nextthink = level.time + 2500;
+	bolt->nextthink = level.time + 5000; //ZaRR more time
 	bolt->think = G_ExplodeMissile;
 	bolt->s.eType = ET_MISSILE;
 	bolt->r.svFlags = SVF_USE_CURRENT_ORIGIN;
@@ -603,7 +603,7 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir) {
 	VectorScale( dir, 700, bolt->s.pos.trDelta );
 	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
 
-	VectorCopy (start, bolt->r.currentOrigin);
+	VectorCopy (start, bolt->r.currentOrigin);    
 
 	if ( self->player ) {
 		bolt->s.team = self->player->sess.sessionTeam;
@@ -804,7 +804,7 @@ gentity_t *fire_nail( gentity_t *self, vec3_t start, vec3_t forward, vec3_t righ
 	}
 
 	return bolt;
-}	
+}
 
 
 /*

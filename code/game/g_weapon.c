@@ -105,6 +105,7 @@ qboolean CheckGauntletAttack( gentity_t *ent ) {
 		tent->s.otherEntityNum = traceEnt->s.number;
 		tent->s.eventParm = DirToByte( tr.plane.normal );
 		tent->s.weapon = ent->s.weapon;
+        G_FreeEntity(traceEnt); //ZaRR pwn entity blocks
 	}
 
 	if ( !traceEnt->takedamage) {
@@ -203,6 +204,7 @@ void Bullet_Fire (gentity_t *ent, float spread, int damage, int mod ) {
 		} else {
 			tent = G_TempEntity( tr.endpos, EV_BULLET_HIT_WALL );
 			tent->s.eventParm = DirToByte( tr.plane.normal );
+            G_FreeEntity(traceEnt); //Mishutka epic way to delete blocks
 		}
 		tent->s.otherEntityNum = ent->s.number;
 
