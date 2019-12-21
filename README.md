@@ -3,7 +3,7 @@ Idea: ZaRR
 Programming: Zturtleman
 Assist, additional programming: LepusC
 
-Make file is modified so it won't compile q3tools, instead we using modified improved q3tools. 
+Make file is modified. We use modified improved q3tools. 
 
 ------------------------
 To use this you'll need the [Spearmint engine](https://github.com/zturtleman/spearmint).
