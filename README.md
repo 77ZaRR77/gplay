@@ -1,5 +1,11 @@
-**Spearmint Quake 3** and **Team Arena** game code.
+**Gplay mod for Spearmint Q3**
+Idea: ZaRR
+Programming: Zturtleman
+Assist, additional programming: LepusC
 
+Make file is modified so it won't compile q3tools, instead we using modified improved q3tools. 
+
+------------------------
 To use this you'll need the [Spearmint engine](https://github.com/zturtleman/spearmint).
 
   * On Windows, install [Cygwin and mingw-w64](https://github.com/zturtleman/spearmint/wiki/Compiling#windows).
