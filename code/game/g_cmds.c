@@ -885,6 +885,181 @@ static qboolean G_SayTo( gentity_t *ent, gentity_t *other, int mode ) {
 	return qtrue;
 }
 
+/*
+=================
+Cmd_PlaySound_f
+=================
+*/
+void Cmd_PlaySound_f( gentity_t *ent ) {
+       gentity_t *te;
+       char filename[MAX_QPATH];
+       char global[16];
+
+       if ( trap_Argc() < 2 ) {
+               trap_SendServerCommand( ent-g_entities, "print \"usage: g_playsound <filename> [global]\n  global can be 0 or 1\n\"");
+               return;
+       }
+
+       trap_Argv( 1, filename, sizeof( filename ) );
+       trap_Argv( 2, global, sizeof( global ) );
+
+       if ( atoi( global ) == 1 ) {
+               te = G_TempEntity( ent->s.pos.trBase, EV_GLOBAL_SOUND );
+       }
+       else {
+               te = G_TempEntity( ent->s.pos.trBase, EV_GENERAL_SOUND );
+       }
+       te->s.eventParm = G_SoundIndex( filename );
+       te->r.svFlags |= SVF_BROADCAST;
+}
+
+/*
+=================
+Cmd_GModel_f
+=================
+*/
+void Cmd_GModel_f( gentity_t *ent ) {
+	char filename[MAX_QPATH];
+	char keyword[16];
+	qboolean drop = qfalse;
+	int align = 0;
+	int i;
+
+	if ( trap_Argc() < 2 ) {
+		trap_SendServerCommand( ent-g_entities, "print \"usage: gmodel <filename> [args]\nargs: drop, block32, block48, block64\n\"");
+		return;
+	}
+
+	trap_Argv( 1, filename, sizeof( filename ) );
+
+	for ( i = 2 ; i < trap_Argc(); i++ ) {
+		trap_Argv( i, keyword, sizeof( keyword ) );
+		if ( !Q_stricmp( keyword, "drop" ) ) {
+			drop = qtrue;
+		}
+		else if ( !Q_stricmp( keyword, "block32" ) ) {
+			align = 32;
+			drop = qtrue;
+		}
+		else if ( !Q_stricmp( keyword, "block48" ) ) {
+			align = 48;
+			drop = qtrue;
+		}
+		else if ( !Q_stricmp( keyword, "block64" ) ) {
+			align = 64;
+			drop = qtrue;
+		}
+		else {
+			trap_SendServerCommand( ent-g_entities, va( "print \"unknown gmodel argument '%s'\n\"", keyword ) );
+			return;
+		}
+	}
+
+	// spawn solid model
+	{
+		gentity_t	*podium;
+		vec3_t		forward;
+		vec3_t		origin;
+		int			contents;
+
+		podium = G_Spawn();
+		if ( !podium ) {
+			trap_SendServerCommand( ent-g_entities, "print \"Cannot spawn gmodel, no free entities.\n\"");
+			return;
+		}
+
+		podium->classname = "gmodel";
+		podium->s.eType = ET_GENERAL;
+		podium->s.number = podium - g_entities;
+		podium->clipmask = CONTENTS_SOLID;
+		podium->s.contents = CONTENTS_SOLID;
+		podium->s.modelindex = G_ModelIndex( filename );
+
+		// entity bounds
+		{
+			qhandle_t hModel = trap_R_RegisterModel( filename );
+			if ( hModel && trap_R_ModelBounds( hModel, podium->s.mins, podium->s.maxs, 0, 0, 0 ) ) {
+				// TODO: Rotate bounds
+			} else {
+				VectorSet( podium->s.mins, -20, -20, -20 );
+				VectorSet( podium->s.maxs, 20, 20, 20 );
+			}
+		}
+
+		if ( !align ) {
+			// face player
+			//VectorCopy( ent->player->ps.viewangles, podium->s.apos.trBase );
+			podium->s.apos.trBase[YAW] = ent->player->ps.viewangles[YAW] + 180;
+		}
+
+		AngleVectors( ent->player->ps.viewangles, forward, NULL, NULL );
+
+		VectorCopy( ent->player->ps.origin, origin );
+		origin[2] += ent->player->ps.viewheight;
+		VectorMA( origin, 100, forward, origin );
+
+		if ( align ) {
+			origin[0] = ( ( (int)origin[0] + align/2 ) / align ) * align; // missing fmodf in QVMs
+			origin[1] = ( ( (int)origin[1] + align/2 ) / align ) * align;
+			//origin[2] = ( ( (int)origin[2] + align/2 ) / align ) * align;
+		}
+
+		if ( drop ) {
+			// drop to floor
+			vec3_t dest, mins, maxs;
+			trace_t tr;
+
+			Com_Memset( &tr, 0, sizeof( trace_t ) );
+
+			VectorSet( dest, origin[0], origin[1], origin[2] - 4096 );
+
+			// change test mins/maxs to avoid wrong startsolid
+			VectorCopy( podium->s.mins, mins );
+			VectorCopy( podium->s.maxs, maxs );
+
+			mins[0] += 1;
+			mins[1] += 1;
+
+			maxs[0] -= 1;
+			maxs[1] -= 1;
+
+			trap_Trace( &tr, origin, mins, maxs, dest, podium->s.number, MASK_SOLID );
+
+			if ( tr.startsolid ) {
+				trap_SendServerCommand( ent-g_entities, "print \"Cannot spawn gmodel, start in solid.\n\"");
+				G_FreeEntity( podium );
+				return;
+			}
+
+			// allow to ride movers
+			//podium->s.groundEntityNum = tr.entityNum;
+
+			VectorCopy( tr.endpos, origin );
+		}
+
+		// if it is in a nodrop volume, remove it
+		contents = trap_PointContents( origin, -1 );
+		if ( contents & CONTENTS_NODROP ) {
+			trap_SendServerCommand( ent-g_entities, "print \"Cannot spawn gmodel, no drop zone.\n\"");
+			G_FreeEntity( podium );
+			return;
+		}
+
+		G_SetOrigin( podium, origin );
+
+		trap_LinkEntity (podium);
+	}
+
+	// item respawn sound
+	{
+		gentity_t *te;
+
+		te = G_TempEntity( ent->s.pos.trBase, EV_GENERAL_SOUND );
+		te->s.eventParm = G_SoundIndex( "sound/items/respawn1.wav" );
+		te->r.svFlags |= SVF_BROADCAST;
+	}
+}
+
 // escape character for botfiles/match.c parsing
 #define EC		"\x19"
 
@@ -1937,6 +2112,14 @@ void ClientCommand( int connectionNum ) {
 #endif
 	if (Q_stricmp (cmd, "score") == 0) {
 		Cmd_Score_f (ent);
+		return;
+	}
+   	if (Q_stricmp (cmd, "gplaysound") == 0) { //zarr
+		Cmd_PlaySound_f (ent);
+		return;
+	}
+        if (Q_stricmp (cmd, "gmodel") == 0) { //zarr
+		Cmd_GModel_f (ent);
 		return;
 	}
 
