@@ -12,16 +12,16 @@ ifeq ($(COMPILE_PLATFORM),sunos)
 endif
 
 ifndef BUILD_GAME_SO
-  BUILD_GAME_SO    =
+  BUILD_GAME_SO    = 0
 endif
 ifndef BUILD_GAME_QVM
-  BUILD_GAME_QVM   =
+  BUILD_GAME_QVM   = 1
 endif
 ifndef BUILD_BASEGAME
-  BUILD_BASEGAME =
+  BUILD_BASEGAME = 1
 endif
 ifndef BUILD_MISSIONPACK
-  BUILD_MISSIONPACK=
+  BUILD_MISSIONPACK= 0
 endif
 ifndef USE_MISSIONPACK_Q3_UI
   USE_MISSIONPACK_Q3_UI =
@@ -98,7 +98,7 @@ endif
 export CROSS_COMPILING
 
 ifndef VERSION
-VERSION=1.0.2
+VERSION=1.0.1
 endif
 
 ifndef VM_PREFIX
@@ -856,7 +856,6 @@ makedirs:
 	@$(MKDIR) $(B)/$(MISSIONPACK)/game
 	@$(MKDIR) $(B)/$(MISSIONPACK)/ui
 	@$(MKDIR) $(B)/$(MISSIONPACK)/qcommon
-	@$(MKDIR) $(B)/$(MISSIONPACK)/q3ui
 	@$(MKDIR) $(B)/$(MISSIONPACK)/vm
 	@$(MKDIR) $(B)/tools/asm
 	@$(MKDIR) $(B)/tools/etc
