@@ -2118,10 +2118,6 @@ void ClientCommand( int connectionNum ) {
 		Cmd_PlaySound_f (ent);
 		return;
 	}
-        if (Q_stricmp (cmd, "gmodel") == 0) { //zarr
-		Cmd_GModel_f (ent);
-		return;
-	}
 
 	// ignore all other commands when at intermission
 	if (level.intermissiontime) {
@@ -2167,6 +2163,8 @@ void ClientCommand( int connectionNum ) {
 		Cmd_SetViewpos_f( ent );
 	else if (Q_stricmp (cmd, "stats") == 0)
 		Cmd_Stats_f( ent );
+	else if (Q_stricmp (cmd, "gmodel") == 0) //zarr
+		Cmd_GModel_f( ent );
 	else
 		trap_SendServerCommand( playerNum, va("print \"unknown cmd %s\n\"", buf ) );
 }
