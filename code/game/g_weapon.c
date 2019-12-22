@@ -101,13 +101,13 @@ qboolean CheckGauntletAttack( gentity_t *ent ) {
 
 	// send blood impact
 	if ( traceEnt->takedamage && traceEnt->player ) {
+		tent = G_TempEntity( tr.endpos, EV_MISSILE_HIT );
 		tent->s.otherEntityNum = traceEnt->s.number;
-        tent = G_TempEntity( tr.endpos, EV_MISSILE_HIT );
-        tent->s.eventParm = DirToByte( tr.plane.normal );
+		tent->s.eventParm = DirToByte( tr.plane.normal );
 		tent->s.weapon = ent->s.weapon;
-        //G_FreeEntity(traceEnt); //ZaRR: simply delete player lol
-    } else {
-      G_FreeEntity(traceEnt);
+		//G_FreeEntity(traceEnt); //ZaRR: simply delete player lol
+	} else {
+		G_FreeEntity( traceEnt ); //ZaRR pwn entity blocks
 	}
 
 	if ( !traceEnt->takedamage) {
