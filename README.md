@@ -1,6 +1,8 @@
 **Gplay mod for Spearmint Q3**
 Idea: ZaRR
+
 Programming: Zturtleman
+
 Assist, additional programming: LepusC
 
 Make file is modified. We use modified improved q3tools. 
